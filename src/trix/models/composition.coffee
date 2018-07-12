@@ -218,8 +218,15 @@ class Trix.Composition extends Trix.BasicObject
         true
 
   canSetCurrentBlockAttribute: (attributeName) ->
-    return unless block = @getBlock()
-    not block.isTerminalBlock()
+    # Override to explicitly allow adding align block attributes
+    # since it previously was only allowed on blocks that had
+    # not set the terminal flag
+    allowedBlockAttrsForTerminalBlocks = ["alignRight", "alignCenter", "alignLeft"]
+    isAllowed = allowedBlockAttrsForTerminalBlocks.includes
+    if isAllowed
+      true
+    else
+      block = @getBlock() not block.isTerminalBlock()
 
   setCurrentAttribute: (attributeName, value) ->
     if getBlockConfig(attributeName)

@@ -37,6 +37,12 @@ class Trix.Block extends Trix.Object
       @copyWithText(@text.copyUsingObjectMap(objectMap))
 
   addAttribute: (attribute) ->
+    {role} = Trix.getBlockConfig(attribute)
+    if role?
+      filteredAttributes = []
+      for attr in @attributes
+        filteredAttributes.push(attr) unless Trix.getBlockConfig(attr).role is role
+        @attributes = filteredAttributes
     attributes = @attributes.concat(expandAttribute(attribute))
     @copyWithAttributes(attributes)
 
@@ -156,7 +162,19 @@ class Trix.Block extends Trix.Object
   # Grouping
 
   canBeGrouped: (depth) ->
-    @attributes[depth]
+    blacklist = ["alignRight", "alignLeft", "alignCenter"]
+    attributes = (attr for attr in @attributes when attr not in blacklist)
+    attr = attributes[depth]
+    # since in the case of paragraphs,
+    # removing the alignment classes will result
+    # in empty attribute arrays
+    # so we need to reset in this case since otherwise
+    # the block container will have no tagName
+    if attributes.length is 0
+      attr = @attributes[depth]
+    attr
+
+
 
   canBeGroupedWith: (otherBlock, depth) ->
     otherAttributes = otherBlock.getAttributes()

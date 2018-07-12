@@ -45,3 +45,18 @@ Trix.config.blockAttributes = attributes =
     nestable: true
     test: (element) ->
       Trix.tagName(element.parentNode) is attributes[@listAttribute].tagName
+  alignRight:
+    tagNames: ["p", "h1", "h2", "h3"]
+    className: "text-align-right"
+    role: "alignment"
+    test: (element) -> element.className?.indexOf("text-align-right") != -1
+  alignLeft:
+    tagNames: ["p", "h1", "h2", "h3"]
+    className: "text-align-left"
+    role: "alignment"
+    test: (element) -> element.className?.indexOf("text-align-left") != -1
+  alignCenter:
+    tagNames: ["p", "h1", "h2", "h3"]
+    className: "text-align-center"
+    role: "alignment"
+    test: (element) -> element.className?.indexOf("text-align-center") != -1

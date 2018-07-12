@@ -212,6 +212,9 @@ class Trix.HTMLParser extends Trix.BasicObject
           if config.test?(element) or not config.test
             attributes.push(attribute)
             attributes.push(config.listAttribute) if config.listAttribute
+        # run this as well since can be e.g. 'heading1' and have a style attr
+        if config.tagNames and tagName(element) in config.tagNames
+            attributes.push(attribute) if config.test?(element)
       element = element.parentNode
     attributes.reverse()
 

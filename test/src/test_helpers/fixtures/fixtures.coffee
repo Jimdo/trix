@@ -167,6 +167,22 @@ removeWhitespace = (string) ->
     document: createDocument(["a", {}, ["bulletList", "bullet"]], ["b", {}, ["numberList", "number"]])
     html: "<ul><li>#{blockComment}a</li></ul><ol><li>#{blockComment}b</li></ol>"
 
+  "header block with `align-right` class":
+    document: createDocument(["a", {}, ["heading1", "alignRight"]])
+    html: """<h1 class="text-align-right">#{blockComment}a</h1>"""
+
+  "block with `align-right` class":
+    document: createDocument(["a", {}, ["alignRight"]])
+    html: """<div class="text-align-right">#{blockComment}a</div>"""
+
+  "block with `text-align-left` class":
+    document: createDocument(["a", {}, ["alignLeft"]])
+    html: """<div class="text-align-left">#{blockComment}a</div>"""
+
+  "block with `text-align-center` class":
+    document: createDocument(["a", {}, ["alignCenter"]])
+    html: """<div class="text-align-center">#{blockComment}a</div>"""
+
   "empty block with attributes":
     document: createDocument(["", {}, ["quote"]])
     html: "<blockquote>#{blockComment}<br></blockquote>"

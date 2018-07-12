@@ -27,9 +27,34 @@ class Trix.BlockView extends Trix.ObjectView
       [element]
 
   createContainerElement: (depth) ->
-    attribute = @attributes[depth]
+    attribute = undefined
+    config = undefined
+
+    # since we want to skip block attributes
+    # that do not have a tagName property
+    # (i.e. the alignment attrs)
+    for attr in @attributes.slice(depth)
+      if attr
+        # keep assigning, since if there is no
+        # other block attr with tagName
+        # we use the default tagName instead
+        config = getBlockConfig(attr)
+        attribute = attr
+        if config.tagName
+          break
+
     config = getBlockConfig(attribute)
-    makeElement(config.tagName)
+    if config.tagName
+      element = makeElement(config.tagName)
+    else
+      element = makeElement(Trix.config.blockAttributes.default.tagName)
+
+    # add classes from align* block attributes
+    classNames = []
+    for attribute in @attributes
+        classNames.push(className) if className = Trix.getBlockConfig(attribute)?.className
+    element.className = classNames.join(' ') unless classNames.length is 0
+    element
 
   # A single <br> at the end of a block element has no visual representation
   # so add an extra one.
