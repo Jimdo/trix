@@ -451,8 +451,10 @@ class Trix.Document extends Trix.Object
 
   attributesForBlock = (block) ->
     attributes = {}
-    if attributeName = block.getLastAttribute()
-      attributes[attributeName] = true
+    # override to include alignment-block attributes
+    # as well as the actual block attribute
+    for attr in block.attributes
+      attributes[attr] = true
     attributes
 
   getAttachmentById: (attachmentId) ->
