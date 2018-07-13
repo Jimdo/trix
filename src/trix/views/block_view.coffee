@@ -19,10 +19,17 @@ class Trix.BlockView extends Trix.ObjectView
       nodes.push(textView.getNodes()...)
       nodes.push(makeElement("br")) if @shouldAddExtraNewlineElement()
 
-    if @attributes.length
+    blacklist = ["alignRight", "alignLeft", "alignCenter"]
+    attributes = (attr for attr in @attributes when attr not in blacklist)
+
+    if attributes.length
       nodes
     else
       element = makeElement(Trix.config.blockAttributes.default.tagName)
+      classNames = []
+      for attribute in @attributes
+          classNames.push(className) if className = Trix.getBlockConfig(attribute)?.className
+      element.className = classNames.join(' ') unless classNames.length is 0
       element.appendChild(node) for node in nodes
       [element]
 

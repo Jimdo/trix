@@ -165,16 +165,6 @@ class Trix.Block extends Trix.Object
     blacklist = ["alignRight", "alignLeft", "alignCenter"]
     attributes = (attr for attr in @attributes when attr not in blacklist)
     attr = attributes[depth]
-    # since in the case of paragraphs,
-    # removing the alignment classes will result
-    # in empty attribute arrays
-    # so we need to reset in this case since otherwise
-    # the block container will have no tagName
-    if attributes.length is 0
-      attr = @attributes[depth]
-    attr
-
-
 
   canBeGroupedWith: (otherBlock, depth) ->
     otherAttributes = otherBlock.getAttributes()
