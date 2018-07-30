@@ -382,6 +382,34 @@ testGroup "Block formatting", template: "editor_empty", ->
       assert.blockAttributes([7, 8], [])
       expectDocument("a\nb\ncd\n\n")
 
+  test "backspacing a header into a linebreak should not remove heading attribute", (done) ->
+    document = new Trix.Document [
+        new Trix.Block()
+        new Trix.Block(Trix.Text.textForStringWithAttributes("abc"), ["heading1"])
+      ]
+    replaceDocument(document)
+    # selection at the beginning of the heading
+    getEditor().setSelectedRange(1)
+    pressKey "backspace", ->
+      document = getDocument()
+      block = document.getBlockAtIndex(0)
+      assert.deepEqual block.getAttributes(), ["heading1"]
+      done()
+
+  test "backspacing a header into a linebreak from a block with multiple linebreaks should not remove heading attribute", (done) ->
+    document = new Trix.Document [
+        new Trix.Block(Trix.Text.textForStringWithAttributes("\n\n"))
+        new Trix.Block(Trix.Text.textForStringWithAttributes("abc"), ["heading1"])
+      ]
+    replaceDocument(document)
+    # selection at the beginning of the heading
+    getEditor().setSelectedRange(3)
+    pressKey "backspace", ->
+      document = getDocument()
+      block = document.getBlockAtIndex(0)
+      assert.deepEqual block.getAttributes(), ["heading1"]
+      done()
+
   test "inserting newline before heading", (done) ->
     document = new Trix.Document [
         new Trix.Block(Trix.Text.textForStringWithAttributes("\n"), [])

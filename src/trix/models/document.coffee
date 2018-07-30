@@ -139,13 +139,61 @@ class Trix.Document extends Trix.Object
       rightText = rightBlock.text.getTextAtRange([rightOffset, rightBlock.getLength()])
       text = leftText.appendText(rightText)
 
-      removingLeftBlock = leftIndex isnt rightIndex and leftOffset is 0
-      useRightBlock = removingLeftBlock and leftBlock.getAttributeLevel() >= rightBlock.getAttributeLevel()
+      # in the case of
+      # ```
+      # <p><br></p>
+      # []<h1>Foobar</h1>
+      # ```
+      #
+      # and pressing backspace, leftOffset is set to 1 here (in Chrome at least)
+      # which makes sense, since backspace is equivalent of doing a selection of
+      # ```
+      # [<p><br></p>]
+      # <h1>Foobar</h1>
+      # ```
+      #
+      # In the case of doing delete instead:
+      # ```
+      # <p><br></p>
+      # []<h1>Foobar</h1>
+      # ```
+      #
+      # Becomes
+      # ```
+      # <p><br></p>
+      # <h1>[F]oobar</h1>
+      # ```
 
-      if useRightBlock
+      wasCollapsedSelection = rightPosition - leftPosition is 1
+
+      leftBlockStringAtOffsetIsNewLine = leftBlock.text.getStringAtPosition(leftOffset) is "\n"
+
+      # block can contain one or more `\n` apparently, hence regex matching
+      # to match all occurances
+      leftBlockStringIsNewLine = leftBlock.toString().replace(/\n/g, '') is ""
+      removeLeftNewline = wasCollapsedSelection and leftBlockStringAtOffsetIsNewLine and leftBlockStringIsNewLine
+
+      if removeLeftNewline
         block = rightBlock.copyWithText(text)
       else
-        block = leftBlock.copyWithText(text)
+        # I.e. doing backspace within `<h1>F[o]obar</h1>`
+        areNotWithinSameBlock = leftIndex isnt rightIndex
+
+        # NOTE
+        # In e.g. Word the leftmost block has precedence in terms of retaining styling
+        # 1. A paragaph backspaced into a header will thus get a header styling
+        # 2. A header backspaced into a paragraph will get a paragraph styling
+
+        # `leftOffset is 0` <-- what does 0 really *mean* here?
+        removingLeftBlock = areNotWithinSameBlock and leftOffset is 0
+
+        # Need to know whether left or right blocks don't have any real content
+        useRightBlock = removingLeftBlock and leftBlock.getAttributeLevel() >= rightBlock.getAttributeLevel()
+
+        if useRightBlock
+          block = rightBlock.copyWithText(text)
+        else
+          block = leftBlock.copyWithText(text)
 
       affectedBlockCount = rightIndex + 1 - leftIndex
       blocks = @blockList.splice(leftIndex, affectedBlockCount, block)

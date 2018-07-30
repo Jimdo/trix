@@ -142,7 +142,10 @@ class Trix.Composition extends Trix.BasicObject
 
         if block.isListItem()
           @decreaseListLevel()
-        else
+        else if block.isEmpty()
+          # E.g. when we have a block that is set as blockquote
+          # but with no content, pressing backspace should
+          # remove the blockquote styling from that block
           @decreaseBlockAttributeLevel()
 
         @setSelection(range[0])
