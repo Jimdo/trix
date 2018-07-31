@@ -502,7 +502,28 @@ class Trix.Composition extends Trix.BasicObject
     else if insertion.startLocation.offset - 1 isnt 0
       position += 1
 
-    newDocument = new Trix.Document [block.removeLastAttribute().copyWithoutText()]
+    previousBlockAttrs = block.getAttributes()
+
+    # We keep `removeLastAttribute` here for compatibility
+    # with existing tests and code
+    newBlock = block.copyWithoutText()
+
+    # if we don't clean up the alignment attrs
+    # then we get issues with ordering of the attributes
+    # since we have to call `removeLastAttribute()` below
+    # for compatibility reasons
+    newBlock.attributes = newBlock.getSignificantAttributes()
+
+    # this is what was done (before our changes) — hence we keep it
+    newBlock = newBlock.removeLastAttribute()
+
+    # Re-attach any attributes with `inheritFromPreviousBlock`
+    for attr in previousBlockAttrs
+      blockConfig = getBlockConfig attr
+      if blockConfig.inheritFromPreviousBlock and attr not in block.attributes
+        block.addAttribute(attr)
+
+    newDocument = new Trix.Document [newBlock]
     @setDocument(document.insertDocumentAtRange(newDocument, range))
     @setSelection(position)
 

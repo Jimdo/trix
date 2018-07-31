@@ -55,16 +55,33 @@ class Trix.Block extends Trix.Object
     @removeAttribute(@getLastAttribute())
 
   getLastAttribute: ->
-    getLastElement(@attributes)
+    # if we dont use significant attrs here
+    # then a lot of logic relying on the fact
+    # that there should be only a single
+    # block attribute will stop working
+    significantAttrs = @getSignificantAttributes()
+    getLastElement(significantAttrs)
+
+  # "significant" here can loosely be defined as
+  # "all block attrs who dont deal with alignment"
+  getSignificantAttributes: ->
+    insignificantAttributes = ["alignCenter", "alignRight"]
+    @getAttributes().filter (attr) ->
+      attr not in insignificantAttributes
 
   getAttributes: ->
     @attributes.slice(0)
 
   getAttributeLevel: ->
-    @attributes.length
+    significantAttrs = @getSignificantAttributes()
+    significantAttrs.length
 
   getAttributeAtLevel: (level) ->
     @attributes[level - 1]
+
+  hasSignificantAttributes: ->
+    significantAttrs = @getSignificantAttributes()
+    significantAttrs.length > 0
 
   hasAttributes: ->
     @getAttributeLevel() > 0

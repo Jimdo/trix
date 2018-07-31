@@ -18,7 +18,13 @@ class Trix.LineBreakInsertion
       @breaksOnReturn and @nextCharacter isnt "\n"
 
   shouldBreakFormattedBlock: ->
-    @block.hasAttributes() and not @block.isListItem() and
+    # Blockbreaks should only follow blocks that have
+    # non-alignment block attributes. If the previous block
+    # is one that only contains alignment properties
+    # then we want to add a newline to that block instead
+    # of doing a blockbreak (hence `hasSignificantAttributes()`)
+
+    @block.hasSignificantAttributes() and not @block.isListItem() and
       ((@breaksOnReturn and @nextCharacter is "\n") or @previousCharacter is "\n")
 
   shouldDecreaseListLevel: ->
@@ -28,4 +34,5 @@ class Trix.LineBreakInsertion
     @block.isListItem() and @startLocation.offset is 0 and not @block.isEmpty()
 
   shouldRemoveLastBlockAttribute: ->
-    @block.hasAttributes() and not @block.isListItem() and @block.isEmpty()
+    lastAttributesAreAlignmentAttrs = @block.getLastAttribute() in ["alignCenter", "alignRight"]
+    @block.hasSignificantAttributes() and not @block.isListItem() and @block.isEmpty() and not lastAttributesAreAlignmentAttrs

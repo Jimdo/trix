@@ -109,8 +109,29 @@ class Trix.Document extends Trix.Object
     [startPosition] = range = normalizeRange(range)
     {index, offset} = @locationFromPosition(startPosition)
 
+    # Since if there is a selection, the selected text should be
+    # removed and the new text inserted in its place
     document = @removeTextAtRange(range)
-    new @constructor document.blockList.editObjectAtIndex index, (block) ->
+
+    # What we do here is that we transplant the alignment
+    # from blocks that are adjacent to the one we are creating
+    new @constructor document.blockList.editObjectAtIndex index, (block) =>
+      # initial block will obv. have no previous one, hence we check
+      previousBlock = @getBlockAtIndex(index - 1) if index > 0
+
+      # e.g. contains only linebreaks so far
+      currentBlockHasNoContentYet = block.toString().replace(/\n/g, "") is ""
+
+      if (previousBlock)
+        previousBlockAttrs = previousBlock.attributes
+
+        # Check if already has center, since we don't want two alignment attrs
+        if ("alignRight" in previousBlockAttrs and "alignRight" not in block.attributes and "alignCenter" not in block.attributes)
+          block = block.addAttribute("alignRight")
+
+        if ("alignCenter" in previousBlockAttrs and "alignCenter" not in block.attributes and "alignRight" not in block.attributes)
+          block = block.addAttribute("alignCenter")
+
       block.copyWithText(block.text.insertTextAtPosition(text, offset))
 
   removeTextAtRange: (range) ->

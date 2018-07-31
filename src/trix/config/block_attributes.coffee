@@ -1,3 +1,10 @@
+# Attribute explanation
+#
+# `inheritFromPreviousBlock: boolean`
+# When the user has e.g. the end of a block selected, and presses return
+# this property will decide whether the block attribute should be copied
+# from the original block to the one that gets created.
+
 Trix.config.blockAttributes = attributes =
   default:
     tagName: "p"
@@ -46,16 +53,19 @@ Trix.config.blockAttributes = attributes =
     test: (element) ->
       Trix.tagName(element.parentNode) is attributes[@listAttribute].tagName
   alignRight:
+    inheritFromPreviousBlock: true
     tagNames: ["p", "h1", "h2", "h3"]
     className: "text-align-right"
     role: "alignment"
     test: (element) -> element.className?.indexOf("text-align-right") != -1
   alignLeft:
+    inheritFromPreviousBlock: true
     tagNames: ["p", "h1", "h2", "h3"]
     className: "text-align-left"
     role: "alignment"
     test: (element) -> element.className?.indexOf("text-align-left") != -1
   alignCenter:
+    inheritFromPreviousBlock: true
     tagNames: ["p", "h1", "h2", "h3"]
     className: "text-align-center"
     role: "alignment"
