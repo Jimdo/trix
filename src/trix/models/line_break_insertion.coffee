@@ -34,5 +34,4 @@ class Trix.LineBreakInsertion
     @block.isListItem() and @startLocation.offset is 0 and not @block.isEmpty()
 
   shouldRemoveLastBlockAttribute: ->
-    lastAttributesAreAlignmentAttrs = @block.getLastAttribute() in ["alignCenter", "alignRight"]
-    @block.hasSignificantAttributes() and not @block.isListItem() and @block.isEmpty() and not lastAttributesAreAlignmentAttrs
+    @block.hasSignificantAttributes() and not @block.isListItem() and @block.isEmpty()

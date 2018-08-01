@@ -520,8 +520,8 @@ class Trix.Composition extends Trix.BasicObject
     # Re-attach any attributes with `inheritFromPreviousBlock`
     for attr in previousBlockAttrs
       blockConfig = getBlockConfig attr
-      if blockConfig.inheritFromPreviousBlock and attr not in block.attributes
-        block.addAttribute(attr)
+      if blockConfig.inheritFromPreviousBlock and attr not in newBlock.attributes
+        newBlock = newBlock.addAttribute(attr)
 
     newDocument = new Trix.Document [newBlock]
     @setDocument(document.insertDocumentAtRange(newDocument, range))
