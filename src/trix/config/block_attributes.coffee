@@ -7,7 +7,7 @@
 
 Trix.config.blockAttributes = attributes =
   default:
-    tagName: "p"
+    tagName: "div"
     parse: false
   quote:
     tagName: "blockquote"
@@ -54,19 +54,20 @@ Trix.config.blockAttributes = attributes =
       Trix.tagName(element.parentNode) is attributes[@listAttribute].tagName
   alignRight:
     inheritFromPreviousBlock: true
-    tagNames: ["p", "h1", "h2", "h3"]
+    # Note: `div` only kept here for ease of testing (we change to `p` in prod)
+    tagNames: ["div", "p", "h1", "h2", "h3"]
     className: "text-align-right"
     role: "alignment"
     test: (element) -> element.className?.indexOf("text-align-right") != -1
   alignLeft:
     inheritFromPreviousBlock: true
-    tagNames: ["p", "h1", "h2", "h3"]
+    tagNames: ["div", "p", "h1", "h2", "h3"]
     className: "text-align-left"
     role: "alignment"
     test: (element) -> element.className?.indexOf("text-align-left") != -1
   alignCenter:
     inheritFromPreviousBlock: true
-    tagNames: ["p", "h1", "h2", "h3"]
+    tagNames: ["div", "p", "h1", "h2", "h3"]
     className: "text-align-center"
     role: "alignment"
     test: (element) -> element.className?.indexOf("text-align-center") != -1
