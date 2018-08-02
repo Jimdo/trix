@@ -17,6 +17,7 @@
     "wysiwyg",
     "editor"
   ],
+  "postcss": {},
   "author": "Basecamp, LLC",
   "license": "MIT",
   "bugs": {
