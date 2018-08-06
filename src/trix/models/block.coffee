@@ -179,14 +179,13 @@ class Trix.Block extends Trix.Object
   # Grouping
 
   canBeGrouped: (depth) ->
-    blacklist = ["alignRight", "alignLeft", "alignCenter"]
-    attributes = (attr for attr in @attributes when attr not in blacklist)
-    attr = attributes[depth]
+    attrs = @getSignificantAttributes()
+    attr = attrs[depth]
 
   canBeGroupedWith: (otherBlock, depth) ->
-    otherAttributes = otherBlock.getAttributes()
+    otherAttributes = otherBlock.getSignificantAttributes()
     otherAttribute = otherAttributes[depth]
-    attribute = @attributes[depth]
+    attribute = @getSignificantAttributes()[depth]
 
     attribute is otherAttribute and
       not (getBlockConfig(attribute).group is false and
