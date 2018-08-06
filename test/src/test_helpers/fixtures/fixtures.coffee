@@ -179,10 +179,6 @@ removeWhitespace = (string) ->
     document: createDocument(["a", {}, ["alignRight"]])
     html: """<div class="text-align-right">#{blockComment}a</div>"""
 
-  "block with `text-align-left` class":
-    document: createDocument(["a", {}, ["alignLeft"]])
-    html: """<div class="text-align-left">#{blockComment}a</div>"""
-
   "block with `text-align-center` class":
     document: createDocument(["a", {}, ["alignCenter"]])
     html: """<div class="text-align-center">#{blockComment}a</div>"""

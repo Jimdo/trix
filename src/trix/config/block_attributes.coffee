@@ -59,12 +59,6 @@ Trix.config.blockAttributes = attributes =
     className: "text-align-right"
     role: "alignment"
     test: (element) -> element.className?.indexOf("text-align-right") != -1
-  alignLeft:
-    inheritFromPreviousBlock: true
-    tagNames: ["div", "p", "h1", "h2", "h3"]
-    className: "text-align-left"
-    role: "alignment"
-    test: (element) -> element.className?.indexOf("text-align-left") != -1
   alignCenter:
     inheritFromPreviousBlock: true
     tagNames: ["div", "p", "h1", "h2", "h3"]
