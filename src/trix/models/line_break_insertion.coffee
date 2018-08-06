@@ -15,7 +15,9 @@ class Trix.LineBreakInsertion
     if @block.hasAttributes() and @block.isListItem() and not @block.isEmpty()
       @startLocation.offset isnt 0
     else
-      @breaksOnReturn and @nextCharacter isnt "\n"
+      # `offset isnt 0` to prevent the cursor being at start of lines
+      # and inserting block breaks that have no styling
+      @breaksOnReturn and @nextCharacter isnt "\n" and @startLocation.offset isnt 0
 
   shouldBreakFormattedBlock: ->
     # Blockbreaks should only follow blocks that have
