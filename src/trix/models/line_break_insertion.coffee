@@ -25,8 +25,8 @@ class Trix.LineBreakInsertion
     # is one that only contains alignment properties
     # then we want to add a newline to that block instead
     # of doing a blockbreak (hence `hasSignificantAttributes()`)
-
-    @block.hasSignificantAttributes() and not @block.isListItem() and
+    isEmpty = @block.toString().replace(/\n/g, "") is ""
+    @block.hasSignificantAttributes() and not @block.isListItem() and not isEmpty and
       ((@breaksOnReturn and @nextCharacter is "\n") or @previousCharacter is "\n")
 
   shouldDecreaseListLevel: ->
