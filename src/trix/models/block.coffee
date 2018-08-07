@@ -83,6 +83,9 @@ class Trix.Block extends Trix.Object
     significantAttrs = @getSignificantAttributes()
     significantAttrs.length > 0
 
+  hasAnyAttributes: ->
+    @getAttributes().length > 0
+
   hasAttributes: ->
     @getAttributeLevel() > 0
 

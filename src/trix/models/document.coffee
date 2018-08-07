@@ -26,7 +26,10 @@ class Trix.Document extends Trix.Object
   isEmpty: ->
     @blockList.length is 1 and (
       block = @getBlockAtIndex(0)
-      block.isEmpty() and not block.hasAttributes()
+      # In the case of empty content, but set alignment
+      # we want the block to be rendered so the alignment can
+      # be adjusted properly (e.g. centered)
+      block.isEmpty() and not block.hasAnyAttributes()
     )
 
   copy: (options = {})->
