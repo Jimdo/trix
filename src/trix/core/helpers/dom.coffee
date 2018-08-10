@@ -134,7 +134,13 @@ Trix.extend
     element
 
   getBlockTagNames: ->
-    Trix.blockTagNames ?= (value.tagName for key, value of Trix.config.blockAttributes)
+    blockTagNames = (value.tagName for key, value of Trix.config.blockAttributes)
+
+    # Since not all blockAttributes necessarily have a `tagName` property
+    # we clean up any values of undefined
+    # Otherwise will break seemingly random tests.
+    blockTagNames = blockTagNames.filter (item) -> !!item
+    Trix.blockTagNames ?= blockTagNames
 
   nodeIsBlockContainer: (node) ->
     Trix.nodeIsBlockStartComment(node?.firstChild)
