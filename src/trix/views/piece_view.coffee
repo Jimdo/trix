@@ -76,11 +76,20 @@ class Trix.PieceView extends Trix.ObjectView
     element
 
   createContainerElement: ->
+    attributes = null
+    lastGroupTagName = null
     for key, value of @attributes when config = getTextConfig(key)
+      # alterations made here so that we pick up all attributes
+      # from text attributes.
+      # Otherwise in the case an a-tag has both an `href` and `target`
+      # attr the created element would only receive one of these.
       if config.groupTagName
-        attributes = {}
+        # initialize to empty object if not done already
+        attributes = {} if attributes is null
         attributes[key] = value
-        return makeElement(config.groupTagName, attributes)
+        lastGroupTagName = config.groupTagName
+    if attributes
+      return makeElement(lastGroupTagName, attributes)
 
   nbsp = Trix.NON_BREAKING_SPACE
 

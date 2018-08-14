@@ -56,6 +56,10 @@ removeWhitespace = (string) ->
       ]
     html: """<div>#{blockComment}<a href="http://example.com">ab<em>c</em></a></div>"""
 
+  "text with link and target attribute":
+    document: createDocument(["abc", target: "_blank", href: "http://example.com"])
+    html: """<div>#{blockComment}<a href="http://example.com" target="_blank">abc</a></div>"""
+
   "spaces 1":
     document: createDocument([" a"])
     html: """<div>#{blockComment}&nbsp;a</div>"""
