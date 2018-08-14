@@ -6,3 +6,8 @@ Trix.config.attachments =
   file:
     caption:
       size: true
+  # Whether images should be allowed in
+  # parsed HTML and transformed into attachment
+  enableImages:
+    true
+

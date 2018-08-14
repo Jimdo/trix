@@ -111,6 +111,7 @@ class Trix.HTMLParser extends Trix.BasicObject
             @appendStringWithAttributes("\n", @getTextAttributes(element))
           @processedElements.push(element)
         when "img"
+          return if not Trix.config.attachments.enableImages
           attributes = url: element.getAttribute("src"), contentType: "image"
           attributes[key] = value for key, value of getImageDimensions(element)
           @appendAttachmentWithAttributes(attributes, @getTextAttributes(element))
