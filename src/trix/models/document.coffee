@@ -53,9 +53,29 @@ class Trix.Document extends Trix.Object
     new @constructor blocks
 
   copyWithBaseBlockAttributes: (blockAttributes = []) ->
-    blocks = for block in @getBlocks()
-      attributes = blockAttributes.concat(block.getAttributes())
-      block.copyWithAttributes(attributes)
+    # at this point, the blockAttributes should only be applied to the 
+    # first block type
+  
+    isInsideBlock = false
+    blocks = for block, index in @getBlocks()
+      existingBlockAttributes = block.getAttributes()
+      newBlockAttributes = blockAttributes.filter (attr) -> attr not in existingBlockAttributes
+      newBlockAttributes = newBlockAttributes.concat(existingBlockAttributes)
+      # attrfoo = (attr for attr in blockAttributes when newAttributes.indexOf(attr) !== -1)
+      # newAttributes = newAttributes.concat(attrfoo)
+      # # for attr in blockAttributes
+      # # attributes = blockAttributes.concat(block.getAttributes())
+      
+      if index is 0
+        if "bulletList" in existingBlockAttributes
+          isInsideBlock = true
+        block.copyWithAttributes(newBlockAttributes)
+      else
+        if isInsideBlock and "bulletList" in existingBlockAttributes
+          block.copyWithAttributes(newBlockAttributes)
+        else
+          isInsideBlock = false
+          block
     new @constructor blocks
 
   replaceBlock: (oldBlock, newBlock) ->

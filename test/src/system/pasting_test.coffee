@@ -89,10 +89,26 @@ testGroup "Pasting", template: "editor_empty", ->
           assert.equal block.toString(), "abcHello world\n"
 
           block = document.getBlockAtIndex(1)
-          assert.deepEqual block.getAttributes(), ["quote", "code"]
+          assert.deepEqual block.getAttributes(), ["code"]
           assert.equal block.toString(), "This is a test\n"
 
           done()
+  
+  test "paste complex html to end of header", (done) -> 
+    typeCharacters "header1", ->
+      clickToolbarButton attribute: "heading1", ->
+        pasteContent "text/html", "<h1>header2</h1><div>paragraph</div>", ->
+          doc = getDocument()
+          assert.equal doc.getBlockCount(), 2
+          block = doc.getBlockAtIndex(0)
+          assert.deepEqual block.getAttributes(), ["heading1"]
+          block = doc.getBlockAtIndex(1)
+          assert.deepEqual block.getAttributes(), []
+
+          output = document.querySelector("trix-editor").value
+          assert.equal output, "<h1>header1header2</h1><div>paragraph</div>"
+          done();
+          
 
   test "paste list into list", (done) ->
     clickToolbarButton attribute: "bullet", ->
