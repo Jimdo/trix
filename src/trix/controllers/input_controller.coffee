@@ -274,6 +274,11 @@ class Trix.InputController extends Trix.BasicObject
       else if html = clipboard.getData("text/html")
         paste.type = "text/html"
         paste.html = html
+
+        if @selectionIsExpanded()
+          selection = @delegate.editor.getSelectedRange()
+          @delegate.editor.deleteInDirection("backward")
+          @delegate.editor.setSelectedRange(selection[0])
         @delegate?.inputControllerWillPaste(paste)
         @responder?.insertHTML(paste.html)
         @requestRender()

@@ -59,7 +59,18 @@ class Trix.Document extends Trix.Object
     isInsideBlock = false
     blocks = for block, index in @getBlocks()
       existingBlockAttributes = block.getAttributes()
+      # somehow here need to do special merge between new attributes,
+      # where precedence should be given to sent in 
+      # block attributes
+      headers = ["heading1", "heading2", "heading3"]
       newBlockAttributes = blockAttributes.filter (attr) -> attr not in existingBlockAttributes
+
+      # get all of the header attrs from the "incoming" block
+      newBlockHeaderAttributes = (attribute for attribute in newBlockAttributes when attribute in headers)
+      shouldCleanAllHeaderAttrs = newBlockHeaderAttributes.length && newBlockHeaderAttributes.length > 0;
+      if shouldCleanAllHeaderAttrs
+        existingBlockAttributes = (attribute for attribute in existingBlockAttributes when attribute not in headers)
+      # removeExistingHeaderAttributes = (header for header in newBlockHeaderAttributes when header in existingblockAttributes)
       newBlockAttributes = newBlockAttributes.concat(existingBlockAttributes)
       # attrfoo = (attr for attr in blockAttributes when newAttributes.indexOf(attr) !== -1)
       # newAttributes = newAttributes.concat(attrfoo)

@@ -90,8 +90,11 @@ class Trix.Composition extends Trix.BasicObject
 
   insertHTML: (html) ->
     document = Trix.Document.fromHTML(html)
+
+    # get the original range
     selectedRange = @getSelectedRange()
 
+    # set the new document, given the old range
     @setDocument(@document.mergeDocumentAtRange(document, selectedRange))
 
     startPosition = selectedRange[0]

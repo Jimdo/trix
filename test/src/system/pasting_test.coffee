@@ -131,6 +131,23 @@ testGroup "Pasting", template: "editor_empty", ->
 
           done()
 
+  test "paste into a fully selected block", (done) ->
+    clickToolbarButton attribute: 'heading1', ->
+      typeCharacters "abc", ->
+        debugger;
+        editor = document.querySelector("trix-editor").editor
+        lengthOffset = editor.getDocument().getLength()
+        # set selection to be from beginning to the end of document
+        editor.setSelectedRange([0, lengthOffset - 1])
+        
+        pasteContent "text/html", "<div>Foobar</div>", ->
+          document = getDocument()
+          assert.equal document.getBlockCount(), 1
+          block = document.getBlockAtIndex(0)
+          assert.deepEqual block.getAttributes(), []
+          assert.equal block.toString(), "Foobar\n"
+          done();
+
   test "paste list into quote", (done) ->
     clickToolbarButton attribute: "quote", ->
       typeCharacters "abc", ->
