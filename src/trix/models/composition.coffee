@@ -88,11 +88,10 @@ class Trix.Composition extends Trix.BasicObject
     else
       @insertString("\n")
 
-  insertHTML: (html) ->
+  insertHTML: (html, didDeleteDueToNoCollapsedSelection = false) ->
     document = Trix.Document.fromHTML(html)
     selectedRange = @getSelectedRange()
-
-    @setDocument(@document.mergeDocumentAtRange(document, selectedRange))
+    @setDocument(@document.mergeDocumentAtRange(document, selectedRange, didDeleteDueToNoCollapsedSelection))
 
     startPosition = selectedRange[0]
     endPosition = startPosition + document.getLength() - 1
@@ -160,7 +159,16 @@ class Trix.Composition extends Trix.BasicObject
       @editAttachment(attachment)
       false
     else
-      @setDocument(@document.removeTextAtRange(range))
+      [startPosition, endPosition] = locationRange
+
+      # In case everything in the document is selected, e.g. when doing "Select All"
+      # in this case we want all remnants of the old document to disappear; including
+      # block attributes
+      if startPosition.offset == 0 and endPosition.offset == @document.getLength() - 1 and endPosition.offset > 0
+        @setDocument(new @document.constructor)
+      else 
+        @setDocument(@document.removeTextAtRange(range))
+
       @setSelection(range[0])
       false if deletingIntoPreviousBlock or selectionSpansBlocks
 

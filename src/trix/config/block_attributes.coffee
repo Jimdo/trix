@@ -1,9 +1,21 @@
 # Attribute explanation
 #
+# See https://github.com/basecamp/trix/pull/263 for origin of a lot of the 
+# attributes.
+#
 # `inheritFromPreviousBlock: boolean`
 # When the user has e.g. the end of a block selected, and presses return
 # this property will decide whether the block attribute should be copied
 # from the original block to the one that gets created.
+#
+# `terminal`: when a blockAttribute with terminal: true is applied, adding 
+# additional block attributes is prevented.
+#
+# `breakOnReturn`: when the return key is pressed from inside a block with
+#  breakOnReturn: true, the formatted block will be broken out of.
+#
+# `group`: prevents adjacent blocks with group: false from rendering in the 
+# same block element.
 
 Trix.config.blockAttributes = attributes =
   default:

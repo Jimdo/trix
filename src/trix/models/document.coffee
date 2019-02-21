@@ -2,7 +2,7 @@
 #= require trix/models/splittable_list
 #= require trix/models/html_parser
 
-{arraysAreEqual, normalizeRange, rangeIsCollapsed, getBlockConfig} = Trix
+{arraysAreEqual, normalizeRange, rangeIsCollapsed, getBlockConfig, getListAttributeNames, getNestableAttributeNames} = Trix
 
 class Trix.Document extends Trix.Object
   @fromJSON: (documentJSON) ->
@@ -53,9 +53,46 @@ class Trix.Document extends Trix.Object
     new @constructor blocks
 
   copyWithBaseBlockAttributes: (blockAttributes = []) ->
-    blocks = for block in @getBlocks()
-      attributes = blockAttributes.concat(block.getAttributes())
-      block.copyWithAttributes(attributes)
+    isInsideBlock = false
+    blocks = for block, index in @getBlocks()
+      existingBlockAttributes = block.getAttributes()
+      # somehow here need to do special merge between new attributes,
+      # where precedence should be given to sent in 
+      # block attributes
+      headers = ["heading1", "heading2", "heading3"]
+      
+      # We need to remove any duplicate block attributes for e.g. headers. Some block
+      # attributes however allow for duplicates to have nesting (e.g. with quotes, or lists)
+      # so we need to allow for these to pass through.
+      listAttributes = getListAttributeNames()
+      nestableAttributes = getNestableAttributeNames()
+      attributesThatAllowNesting = listAttributes.concat(nestableAttributes)
+
+      newBlockAttributes = blockAttributes.filter (attr) -> 
+        if attr in attributesThatAllowNesting
+          return true
+        else if attr not in existingBlockAttributes
+          return false
+
+      # get all of the header attrs from the "incoming" block
+      newBlockHeaderAttributes = (attribute for attribute in newBlockAttributes when attribute in headers)
+      shouldCleanAllHeaderAttrs = newBlockHeaderAttributes.length && newBlockHeaderAttributes.length > 0
+
+      if shouldCleanAllHeaderAttrs
+        existingBlockAttributes = (attribute for attribute in existingBlockAttributes when attribute not in headers)
+
+      newBlockAttributes = newBlockAttributes.concat(existingBlockAttributes)
+      
+      if index is 0
+        if "bulletList" in existingBlockAttributes
+          isInsideBlock = true
+        block.copyWithAttributes(newBlockAttributes)
+      else
+        if isInsideBlock and "bulletList" in existingBlockAttributes
+          block.copyWithAttributes(newBlockAttributes)
+        else
+          isInsideBlock = false
+          block
     new @constructor blocks
 
   replaceBlock: (oldBlock, newBlock) ->
@@ -79,16 +116,42 @@ class Trix.Document extends Trix.Object
     result = result.removeTextAtRange(range)
     new @constructor result.blockList.insertSplittableListAtPosition(blockList, position)
 
-  mergeDocumentAtRange: (document, range) ->
+  # @param didDeleteDueToExpandedSelection
+  # In the case of having a selection spanning characters, and doing a paste of content
+  # then this flag would be set to true (since the selected content would be deleted).
+  mergeDocumentAtRange: (document, range, didDeleteDueToExpandedSelection = false) ->
     [startPosition] = range = normalizeRange(range)
     startLocation = @locationFromPosition(startPosition)
-    blockAttributes = @getBlockAtIndex(startLocation.index).getAttributes()
+    blockToMergeWith = @getBlockAtIndex(startLocation.index) 
+    blockAttributes = blockToMergeWith.getAttributes()
+    blockIsEmpty = blockToMergeWith.isEmpty()
+
+    # in the case of:
+    # [<h1 style="text-align-right">Foo</h1>]
+    # + pasting(<h1>Bar</h1>)
+    #
+    # We should first delete the contents of the selected element, and then
+    # insert the pasted content. I.e. the alignment should not be applied
+    # to the pasted content at all.
+    # If pasting to a row where it's empty, but not due to a multiselection then we should 
+    # still transfer the block attributes
+
+    listAttributes = getListAttributeNames()
+    nestableAttributes = getNestableAttributeNames()
+    attributesThatAllowNesting = listAttributes.concat(nestableAttributes)
+    currentAttributesThatAllowNesting = (attr for attr in attributesThatAllowNesting when attr in blockAttributes)
+    hasAttributesThatAllowNesting = currentAttributesThatAllowNesting && currentAttributesThatAllowNesting.length > 0;
+
+    if blockIsEmpty and didDeleteDueToExpandedSelection and not hasAttributesThatAllowNesting
+      blockAttributes = []
+  
     baseBlockAttributes = document.getBaseBlockAttributes()
     trailingBlockAttributes = blockAttributes.slice(-baseBlockAttributes.length)
+    hasSameBlockAttributes = arraysAreEqual(baseBlockAttributes, trailingBlockAttributes)
 
-    if arraysAreEqual(baseBlockAttributes, trailingBlockAttributes)
-      leadingBlockAttributes = blockAttributes.slice(0, -baseBlockAttributes.length)
-      formattedDocument = document.copyWithBaseBlockAttributes(leadingBlockAttributes)
+    if hasSameBlockAttributes and hasAttributesThatAllowNesting or blockAttributes.length == 0 or didDeleteDueToExpandedSelection
+        leadingBlockAttributes = blockAttributes.slice(0, -baseBlockAttributes.length)
+        formattedDocument = document.copyWithBaseBlockAttributes(leadingBlockAttributes)      
     else
       formattedDocument = document.copy(consolidateBlocks: true).copyWithBaseBlockAttributes(blockAttributes)
 
