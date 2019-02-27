@@ -1,4 +1,4 @@
-{assert, clickToolbarButton, createFile, defer, expandSelection, moveCursor, pasteContent, pressKey, test, testGroup, triggerEvent, typeCharacters} = Trix.TestHelpers
+{assert, clickToolbarButton, createFile, defer, expandSelection, moveCursor, pasteContent, pressKey, selectAll, test, testGroup, triggerEvent, typeCharacters} = Trix.TestHelpers
 
 testGroup "Pasting", template: "editor_empty", ->
   test "paste plain text", (expectDocument) ->
@@ -89,10 +89,65 @@ testGroup "Pasting", template: "editor_empty", ->
           assert.equal block.toString(), "abcHello world\n"
 
           block = document.getBlockAtIndex(1)
-          assert.deepEqual block.getAttributes(), ["quote", "code"]
+          assert.deepEqual block.getAttributes(), ["code"]
           assert.equal block.toString(), "This is a test\n"
 
           done()
+  
+  test "paste complex html to end of header", (done) -> 
+    typeCharacters "header1", ->
+      clickToolbarButton attribute: "heading1", ->
+        pasteContent "text/html", "<h1>header2</h1><div>paragraph</div>", ->
+          doc = getDocument()
+          assert.equal doc.getBlockCount(), 2
+          block = doc.getBlockAtIndex(0)
+          assert.deepEqual block.getAttributes(), ["heading1"]
+          block = doc.getBlockAtIndex(1)
+          assert.deepEqual block.getAttributes(), []
+
+          output = document.querySelector("trix-editor").value
+          assert.equal output, "<h1>header1header2</h1><div>paragraph</div>"
+          done();
+
+  test "pasting different kind of headers into each other", (done) ->
+    typeCharacters "header1", ->
+      clickToolbarButton attribute: "heading1", ->
+        pasteContent "text/html", "<h2>header2</h2>", ->
+          doc = getDocument()
+          assert.equal doc.getBlockCount(), 2
+          block = doc.getBlockAtIndex(0)
+          assert.deepEqual block.getAttributes(), ["heading1"]
+          output = document.querySelector("trix-editor").value
+          assert.equal output, "<h1>header1</h1><h2>header2</h2>"
+          done();
+
+  test "pasting after having select all should delete previous alignment", (done) ->
+    typeCharacters "header1", ->
+      clickToolbarButton attribute: "heading1", ->
+        getEditorController().composition.setCurrentAttribute('alignRight')
+        selectAll ->
+          pasteContent "text/html", "<div>paragraph</div>", ->
+            doc = getDocument()
+            assert.equal doc.getBlockCount(), 1
+            block = doc.getBlockAtIndex(0)
+            assert.deepEqual block.getAttributes(), []
+            output = document.querySelector("trix-editor").value
+            assert.equal output, "<div>paragraph</div>"
+            done();
+
+  test "pasting after having select all should delete previous header attribute", (done) ->
+    typeCharacters "header1", ->
+      clickToolbarButton attribute: "heading1", ->
+
+        selectAll ->
+          pasteContent "text/html", "<div>paragraph</div>", ->
+            doc = getDocument()
+            assert.equal doc.getBlockCount(), 1
+            block = doc.getBlockAtIndex(0)
+            assert.deepEqual block.getAttributes(), []
+            output = document.querySelector("trix-editor").value
+            assert.equal output, "<div>paragraph</div>"
+            done();
 
   test "paste list into list", (done) ->
     clickToolbarButton attribute: "bullet", ->

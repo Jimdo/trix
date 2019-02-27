@@ -2,6 +2,7 @@ allAttributeNames = null
 blockAttributeNames = null
 textAttributeNames = null
 listAttributeNames = null
+nestableAttributeNames = null
 
 Trix.extend
   getAllAttributeNames: ->
@@ -21,3 +22,7 @@ Trix.extend
 
   getListAttributeNames: ->
     listAttributeNames ?= (listAttribute for key, {listAttribute} of Trix.config.blockAttributes when listAttribute?)
+
+  getNestableAttributeNames: ->
+    nestableAttributeNames ?= (key for key, {nestable} of Trix.config.blockAttributes when nestable)
+

@@ -274,8 +274,20 @@ class Trix.InputController extends Trix.BasicObject
       else if html = clipboard.getData("text/html")
         paste.type = "text/html"
         paste.html = html
+        didDeleteSelection = false
+
+        # In the case of having an expanded selection, it should 
+        # have the same behavior as doing a deletion, and then pasting.
+        # Hence we do a deletion here, and pass along a flag to signal
+        # that we deleted the selection.
+        if @selectionIsExpanded()
+          selection = @delegate.editor.getSelectedRange()
+          @delegate.editor.deleteInDirection("backward")
+          @delegate.editor.setSelectedRange(selection[0])
+          didDeleteSelection = true
+        
         @delegate?.inputControllerWillPaste(paste)
-        @responder?.insertHTML(paste.html)
+        @responder?.insertHTML(paste.html, didDeleteSelection)
         @requestRender()
         @delegate?.inputControllerDidPaste(paste)
 
