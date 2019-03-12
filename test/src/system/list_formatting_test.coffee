@@ -36,7 +36,7 @@ testGroup "List formatting", template: "editor_empty", ->
         assert.blockAttributes([0, 2], ["bulletList", "bullet"])
         expectDocument("a\n\n")
 
-  test "pressing delete at the beginning of a non-empty nested list item", (expectDocument) ->
+  test "pressing backspace at the beginning of a non-empty nested list item", (expectDocument) ->
       clickToolbarButton attribute: "bullet", ->
         typeCharacters "a\n", ->
           clickToolbarButton action: "increaseNestingLevel", ->
@@ -48,8 +48,8 @@ testGroup "List formatting", template: "editor_empty", ->
                   getEditorController().render()
                   defer ->
                     assert.blockAttributes([0, 2], ["bulletList", "bullet"])
-                    assert.blockAttributes([3, 4], ["bulletList", "bullet", "bulletList", "bullet"])
-                    expectDocument("ab\nc\n")
+                    assert.blockAttributes([3, 4], ["bulletList", "bullet"])
+                    expectDocument("a\nb\nc\n")
 
   test "decreasing list item's level decreases its nested items level too", (expectDocument) ->
     clickToolbarButton attribute: "bullet", ->
