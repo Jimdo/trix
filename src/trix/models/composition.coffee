@@ -141,6 +141,11 @@ class Trix.Composition extends Trix.BasicObject
 
         if block.isListItem()
           @decreaseListLevel()
+          # We return early here, so that for each list item
+          # the backspaces will keep removing a list level
+          # instead of removing a list level AND
+          # merging with the previous list item
+          return false
         else if block.isEmpty()
           # E.g. when we have a block that is set as blockquote
           # but with no content, pressing backspace should
@@ -148,6 +153,9 @@ class Trix.Composition extends Trix.BasicObject
           @decreaseBlockAttributeLevel()
 
         @setSelection(range[0])
+
+        # blocks where we have just deleted block attributes,
+        # and are now empty should remain
         return false if block.isEmpty()
 
     if selectionIsCollapsed
