@@ -311,12 +311,6 @@ testGroup "Block formatting", template: "editor_empty", ->
         assert.blockAttributes([1, 2], [])
         done()
 
-  test "removing bullet from heading block", (done) ->
-    clickToolbarButton attribute: "bullet", ->
-      clickToolbarButton attribute: "heading1", ->
-        assert.ok isToolbarButtonDisabled(attribute: "bullet")
-        done()
-
   test "breaking out of heading in list", (expectDocument) ->
     clickToolbarButton attribute: "bullet", ->
       clickToolbarButton attribute: "heading1", ->
