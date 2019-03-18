@@ -68,3 +68,28 @@ testGroup "List formatting", template: "editor_empty", ->
                 assert.blockAttributes([2, 3], [])
                 assert.blockAttributes([3, 5], ["bulletList", "bullet"])
                 expectDocument("a\n\nc\n")
+
+  test "deleting from linebreak into a list should not remove the list element", (expectDocument) ->
+    typeCharacters "\n\n", ->
+      clickToolbarButton attribute: "bullet", ->
+        typeCharacters "a", ->
+          getSelectionManager().setLocationRange(index: 0, offset: 1)
+          getComposition().deleteInDirection("forward")
+          getSelectionManager().setLocationRange(index: 0, offset: 0)
+          getComposition().deleteInDirection("forward")
+          getEditorController().render()
+
+          assert.blockAttributes([0, 1], ["bulletList", "bullet"])
+          expectDocument("a\n")
+
+  test "deleting from whitespace that is part of a block into a list should not remove the list element", (expectDocument) ->
+    typeCharacters "paragraph\n\n", ->
+      clickToolbarButton attribute: "bullet", ->
+        typeCharacters "a", ->
+          # selection should at newline between paragraph and bullet
+          getSelectionManager().setLocationRange(index: 0, offset: 10)
+          getComposition().deleteInDirection("forward")
+          getEditorController().render()
+
+          assert.blockAttributes([10, 11], ["bulletList", "bullet"])
+          expectDocument("paragraph\na\n")

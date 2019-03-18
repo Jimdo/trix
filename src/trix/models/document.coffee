@@ -254,14 +254,42 @@ class Trix.Document extends Trix.Object
       wasCollapsedSelection = rightPosition - leftPosition is 1
 
       leftBlockStringAtOffsetIsNewLine = leftBlock.text.getStringAtPosition(leftOffset) is "\n"
+      rightBlockStringAtOffsetIsNewLine = rightBlock.text.getStringAtPosition(rightOffset) is "\n"
 
-      # block can contain one or more `\n` apparently, hence regex matching
-      # to match all occurances
-      leftBlockStringIsNewLine = leftBlock.toString().replace(/\n/g, '') is ""
-      removeLeftNewline = wasCollapsedSelection and leftBlockStringAtOffsetIsNewLine and leftBlockStringIsNewLine
-
+      removeLeftNewline = wasCollapsedSelection and leftBlockStringAtOffsetIsNewLine and not rightBlockStringAtOffsetIsNewLine
       if removeLeftNewline
-        block = rightBlock.copyWithText(text)
+
+        # We need a special case here, bacause copying linebreaks into the beginning of list items
+        # behaves differently than with e.g. headers. What will happen is that there will linebreaks
+        # after the bullet point like so:
+        # ```
+        # * 
+        #  
+        #   list item 
+        # ```
+        if rightBlock.isListItem()
+          leftBlockContainsMultipleLinebreaks = leftBlock.toString() isnt "\n"
+          if leftBlockContainsMultipleLinebreaks
+            # we explicitly set the block count to one since we're only
+            # decreasing the amount of linebreaks inside of the left
+            # block
+            affectedBlockCount = 1
+
+            # -1 since we're removing a linebreak from the left side of the split
+            offsetForSplit = leftOffset - 1
+            # choose left side of split
+            if leftOffset is 1
+              # we take the right side here, since that side should be a lone linebreak
+              block = leftBlock.splitAtOffset(1)[1]
+            else
+              block = leftBlock.splitAtOffset(offsetForSplit)[0] 
+          else
+            # since it's a single linebreak we're removing
+            # we explicitly splice that out, and set block
+            # to the right here so it will be the only one remaining
+            block = rightBlock
+        else
+          block = rightBlock.copyWithText(text)
       else
         # I.e. doing backspace within `<h1>F[o]obar</h1>`
         areNotWithinSameBlock = leftIndex isnt rightIndex
@@ -282,7 +310,7 @@ class Trix.Document extends Trix.Object
         else
           block = leftBlock.copyWithText(text)
 
-      affectedBlockCount = rightIndex + 1 - leftIndex
+      affectedBlockCount = affectedBlockCount or rightIndex + 1 - leftIndex
       blocks = @blockList.splice(leftIndex, affectedBlockCount, block)
 
     new @constructor blocks
