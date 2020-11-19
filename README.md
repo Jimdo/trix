@@ -1,4 +1,22 @@
 # Trix
+
+### Fork notice
+
+This repository contains a forked version of the Trix text editor.
+
+At the time of the fork, Trix was the only text editor that came close to achieving decent compatibility with Android phones. More specifically most text editors had various kinds of issues with the GBoard keyboard used by default for some devices.
+
+Thus we created a fork of Trix, where some additional changes were made ontop of it to accomodate for our requirements.
+
+#### Publishing Changes
+
+The package is published to the private Jimdo npm registry.
+
+Instructions for publishing:
+1. Add an npm token to .npmrc which allows for publishing
+2. Verify changes by running `npm publish --dry-run`
+3. Run `npm publish`
+
 ### A Rich Text Editor for Everyday Writing
 
 **Compose beautifully formatted text in your web application.** Trix is a WYSIWYG editor for writing messages, comments, articles, and lists—the simple documents most web apps are made of. It features a sophisticated document model, support for embedded attachments, and outputs terse and consistent HTML.

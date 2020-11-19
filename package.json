@@ -1,5 +1,5 @@
 {
-  "name": "trix",
+  "name": "@jimdo/trix",
   "version": "0.12.0",
   "description": "A rich text editor for everyday writing",
   "main": "dist/trix.js",
@@ -10,7 +10,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/basecamp/trix.git"
+    "url": "git+https://github.com/Jimdo/trix"
   },
   "keywords": [
     "rich text",
