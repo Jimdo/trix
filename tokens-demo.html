@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trix token attributes — font / colour / underline</title>
+  <link rel="stylesheet" href="dist/trix.css">
+  <script src="dist/trix.js"></script>
+  <style>
+    :root {
+      --fg: #111;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --bg-soft: #f9fafb;
+      --accent-ui: #2563eb;
+
+      /* Theme tokens. In a real CMS these come from the active theme. */
+      --color-primary:   #2563eb;
+      --color-secondary: #9333ea;
+      --color-shade1:    #94a3b8;
+      --color-shade2:    #334155;
+    }
+
+    /* Theme mapping. Each data-* key resolves to typography or colour. */
+    [data-font="headline"] { font-family: Georgia, "Times New Roman", serif; font-weight: 600; }
+    [data-font="body"]     { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+    [data-font="accent"]   { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+
+    [data-color="primary"]   { color: var(--color-primary); }
+    [data-color="secondary"] { color: var(--color-secondary); }
+    [data-color="shade1"]    { color: var(--color-shade1); }
+    [data-color="shade2"]    { color: var(--color-shade2); }
+
+    [data-underline="pattern1"] { text-decoration: underline; }
+    [data-underline="pattern2"] { text-decoration: underline double; }
+    [data-underline="pattern3"] { text-decoration: underline dotted; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+    [data-underline="pattern4"] { text-decoration: underline dashed; }
+    [data-underline="pattern5"] { text-decoration: underline wavy; }
+
+    * { box-sizing: border-box; }
+    body {
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      color: var(--fg);
+      margin: 0;
+      background: white;
+    }
+    main { max-width: 920px; margin: 32px auto; padding: 0 16px 64px; }
+    h1 { margin: 0 0 8px; font-size: 22px; }
+    h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 24px 0 8px; font-weight: 600; }
+    p.lede { color: var(--muted); margin: 0 0 24px; }
+    code { background: var(--bg-soft); padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+
+    .picker {
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+      padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+      margin-bottom: 8px; background: var(--bg-soft);
+    }
+    .picker > .label {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--muted); width: 72px; flex-shrink: 0; font-weight: 600;
+    }
+    button.token {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 10px; border-radius: 16px;
+      font: 12px/1 inherit; cursor: pointer;
+      border: 1px solid var(--border); background: white; color: var(--fg);
+    }
+    button.token:hover { border-color: var(--accent-ui); }
+    button.token.active { border-color: var(--accent-ui); box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
+    button.token .swatch { width: 12px; height: 12px; border-radius: 50%; }
+    button.token .swatch.color-primary   { background: var(--color-primary); }
+    button.token .swatch.color-secondary { background: var(--color-secondary); }
+    button.token .swatch.color-shade1    { background: var(--color-shade1); }
+    button.token .swatch.color-shade2    { background: var(--color-shade2); }
+    button.token .swatch.font            { width: auto; height: auto; border-radius: 0; padding: 0 4px; font-weight: 600; font-size: 10px; line-height: 12px; }
+    button.token .swatch.font.headline   { font-family: Georgia, serif; }
+    button.token .swatch.font.body       { font-family: -apple-system, sans-serif; }
+    button.token .swatch.font.accent     { font-family: ui-monospace, Menlo, monospace; }
+    button.token .swatch.ul              { width: 32px; height: 0; border-bottom: 2px solid #475569; }
+    button.token .swatch.ul.pattern2     { border-bottom-style: double; height: 4px; }
+    button.token .swatch.ul.pattern3     { border-bottom-style: dotted; }
+    button.token .swatch.ul.pattern4     { border-bottom-style: dashed; }
+    button.token .swatch.ul.pattern5     { border-bottom-style: solid; border-image: repeating-linear-gradient(135deg, #475569 0 2px, transparent 2px 4px) 1; }
+
+    button.ghost {
+      font-size: 12px; padding: 5px 10px;
+      background: white; border: 1px solid var(--border); border-radius: 6px;
+      cursor: pointer; color: var(--fg);
+    }
+    button.ghost:hover { border-color: var(--accent-ui); color: var(--accent-ui); }
+
+    .status {
+      margin-top: 8px; font-size: 12px; color: var(--muted);
+    }
+    .status b { color: var(--fg); font-weight: 600; }
+
+    trix-editor {
+      margin-top: 12px;
+      min-height: 160px; padding: 12px;
+      border: 1px solid var(--border); border-radius: 8px;
+    }
+    trix-editor:focus { outline: 2px solid var(--accent-ui); outline-offset: -1px; }
+
+    .inspectors { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .inspectors pre {
+      margin: 0; padding: 10px 12px;
+      background: var(--bg-soft); border: 1px solid var(--border); border-radius: 6px;
+      font: 12px/1.4 ui-monospace, Menlo, monospace;
+      max-height: 240px; overflow: auto;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+  <!--
+    Three independent token-based text attributes registered at runtime.
+    The same `attributeName` machinery handles all of them.
+  -->
+  <script>
+    (function () {
+      // The dimensions we're adding.
+      var DIMENSIONS = [
+        { name: "font",      attr: "data-font",      tokens: ["headline", "body", "accent"] },
+        { name: "color",     attr: "data-color",     tokens: ["primary", "secondary", "shade1", "shade2"] },
+        { name: "underline", attr: "data-underline", tokens: ["pattern1", "pattern2", "pattern3", "pattern4", "pattern5"] },
+      ];
+
+      // ----- patch 1: HTMLSanitizer allow-list -----
+      // The sanitiser strips any attribute not in its allow-list (default:
+      // style/href/src/width/height/class/target) unless it starts with
+      // `data-trix-`. We need our three data attributes allowed.
+      var origSanitize = Trix.HTMLSanitizer.sanitize;
+      var extras = DIMENSIONS.map(function (d) { return d.attr; });
+      Trix.HTMLSanitizer.sanitize = function (html, options) {
+        options = options || {};
+        var base = ["style", "href", "src", "width", "height", "class", "target"];
+        if (!options.allowedAttributes) {
+          options.allowedAttributes = base.concat(extras);
+        } else {
+          extras.forEach(function (a) {
+            if (options.allowedAttributes.indexOf(a) < 0) options.allowedAttributes.push(a);
+          });
+        }
+        return origSanitize.call(this, html, options);
+      };
+
+      // ----- patch 2: PieceView.createElement honours `attributeName` -----
+      // The stock function handles tagName / style / styleProperty. We
+      // run it, then iterate the piece's attributes for our custom
+      // `attributeName` key and set the corresponding DOM attribute.
+      var origCreate = Trix.PieceView.prototype.createElement;
+      Trix.PieceView.prototype.createElement = function () {
+        var element = origCreate.call(this);
+        var attrs = this.attributes;
+        for (var key in attrs) {
+          var config = Trix.config.textAttributes[key];
+          if (config && config.attributeName) {
+            if (!element) element = Trix.makeElement("span");
+            element.setAttribute(config.attributeName, attrs[key]);
+          }
+        }
+        return element;
+      };
+
+      // ----- patch 3: register each dimension as a text attribute -----
+      // Factor out a parser that walks up to the nearest [data-*]
+      // ancestor and (optionally) validates the value against the
+      // allowed token list. This mirrors how href's parser walks up to
+      // the nearest <a>.
+      function tokenParser(attr, allowedTokens) {
+        return function (element) {
+          var found = Trix.findClosestElementFromNode(element, { matchingSelector: "[" + attr + "]" });
+          if (!found) return undefined;
+          var value = found.getAttribute(attr);
+          // Defensive: only accept known tokens. Unknown values from
+          // hand-written or third-party HTML are dropped silently.
+          return allowedTokens.indexOf(value) >= 0 ? value : undefined;
+        };
+      }
+
+      DIMENSIONS.forEach(function (d) {
+        Trix.config.textAttributes[d.name] = {
+          attributeName: d.attr,
+          inheritable: true,
+          parser: tokenParser(d.attr, d.tokens),
+        };
+      });
+    })();
+  </script>
+
+  <main>
+    <h1>Trix token attributes — font / colour / underline</h1>
+    <p class="lede">
+      Three independent text attributes registered at runtime, each
+      emitting its own <code>data-*</code>. Apply any combination; they
+      stack on a single element. Theme mapping (font families, colours,
+      underline patterns) lives in CSS at the top of this file.
+    </p>
+
+    <h2>Font</h2>
+    <div class="picker" data-dim="font">
+      <span class="label">data-font</span>
+      <button class="token" data-token="headline" tabindex="-1"><span class="swatch font headline">Aa</span>headline</button>
+      <button class="token" data-token="body"     tabindex="-1"><span class="swatch font body">Aa</span>body</button>
+      <button class="token" data-token="accent"   tabindex="-1"><span class="swatch font accent">Aa</span>accent</button>
+      <button class="ghost" data-clear tabindex="-1">Clear</button>
+    </div>
+
+    <h2>Colour</h2>
+    <div class="picker" data-dim="color">
+      <span class="label">data-color</span>
+      <button class="token" data-token="primary"   tabindex="-1"><span class="swatch color-primary"></span>primary</button>
+      <button class="token" data-token="secondary" tabindex="-1"><span class="swatch color-secondary"></span>secondary</button>
+      <button class="token" data-token="shade1"    tabindex="-1"><span class="swatch color-shade1"></span>shade1</button>
+      <button class="token" data-token="shade2"    tabindex="-1"><span class="swatch color-shade2"></span>shade2</button>
+      <button class="ghost" data-clear tabindex="-1">Clear</button>
+    </div>
+
+    <h2>Underline</h2>
+    <div class="picker" data-dim="underline">
+      <span class="label">data-underline</span>
+      <button class="token" data-token="pattern1" tabindex="-1"><span class="swatch ul pattern1"></span>pattern1</button>
+      <button class="token" data-token="pattern2" tabindex="-1"><span class="swatch ul pattern2"></span>pattern2</button>
+      <button class="token" data-token="pattern3" tabindex="-1"><span class="swatch ul pattern3"></span>pattern3</button>
+      <button class="token" data-token="pattern4" tabindex="-1"><span class="swatch ul pattern4"></span>pattern4</button>
+      <button class="token" data-token="pattern5" tabindex="-1"><span class="swatch ul pattern5"></span>pattern5</button>
+      <button class="ghost" data-clear tabindex="-1">Clear</button>
+    </div>
+
+    <div class="status" id="status">no selection</div>
+
+    <form>
+      <input
+        type="hidden"
+        id="content"
+        name="content"
+        value='&lt;div&gt;&lt;span data-font=&quot;headline&quot; data-color=&quot;primary&quot;&gt;Welcome to the tokens demo.&lt;/span&gt;&lt;/div&gt;&lt;div&gt;Try combining: &lt;strong data-color=&quot;secondary&quot;&gt;bold secondary&lt;/strong&gt;, &lt;span data-font=&quot;accent&quot; data-color=&quot;shade2&quot;&gt;accent-font shade2&lt;/span&gt;, and &lt;span data-color=&quot;primary&quot; data-underline=&quot;pattern3&quot;&gt;dotted-underlined primary&lt;/span&gt;.&lt;/div&gt;&lt;div&gt;Select anything and pick tokens above.&lt;/div&gt;'>
+      <trix-editor input="content" autofocus></trix-editor>
+    </form>
+
+    <div class="inspectors">
+      <div>
+        <h2>Active attributes at cursor</h2>
+        <pre id="attrs-out">(nothing yet)</pre>
+      </div>
+      <div>
+        <h2>Serialized HTML (hidden input value)</h2>
+        <pre id="html-out">(nothing yet)</pre>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="ghost" id="reload-btn">Reload from serialized HTML</button>
+      <button class="ghost" id="reset-btn">Reset to sample content</button>
+      <button class="ghost" id="empty-btn">Empty editor</button>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var editorEl  = document.querySelector("trix-editor");
+      var status    = document.getElementById("status");
+      var attrsOut  = document.getElementById("attrs-out");
+      var htmlOut   = document.getElementById("html-out");
+      var contentEl = document.getElementById("content");
+      var initialHTML = contentEl.value;
+
+      // Each picker has a data-dim that names the Trix attribute it controls.
+      var pickers = document.querySelectorAll(".picker[data-dim]");
+
+      function apply(dim, token) {
+        if (!editorEl.editor) return;
+        editorEl.editor.recordUndoEntry(dim + ": " + token, { consolidatable: true });
+        editorEl.editor.activateAttribute(dim, token);
+      }
+      function clearDim(dim) {
+        if (!editorEl.editor) return;
+        editorEl.editor.recordUndoEntry("Clear " + dim, { consolidatable: true });
+        editorEl.editor.deactivateAttribute(dim);
+      }
+
+      pickers.forEach(function (picker) {
+        var dim = picker.dataset.dim;
+        picker.querySelectorAll("button.token").forEach(function (btn) {
+          btn.addEventListener("mousedown", function (e) {
+            e.preventDefault();
+            apply(dim, btn.dataset.token);
+          });
+        });
+        picker.querySelector("[data-clear]").addEventListener("mousedown", function (e) {
+          e.preventDefault();
+          clearDim(dim);
+        });
+      });
+
+      editorEl.addEventListener("trix-selection-change", function () {
+        if (!editorEl.editor) return;
+        var range = editorEl.editor.getSelectedRange();
+        if (!range) {
+          status.innerHTML = "<b>no selection</b>";
+        } else if (range[0] === range[1]) {
+          status.innerHTML = "cursor at <b>" + range[0] + "</b> — tokens will apply to next typed text";
+        } else {
+          status.innerHTML = "selection <b>" + range[0] + "&ndash;" + range[1] + "</b> (" + (range[1] - range[0]) + " chars)";
+        }
+      });
+
+      editorEl.addEventListener("trix-attributes-change", function (e) {
+        attrsOut.textContent = JSON.stringify(e.attributes, null, 2);
+        // Reflect active token state on the picker buttons.
+        pickers.forEach(function (picker) {
+          var dim = picker.dataset.dim;
+          var active = e.attributes && e.attributes[dim];
+          picker.querySelectorAll("button.token").forEach(function (btn) {
+            btn.classList.toggle("active", btn.dataset.token === active);
+          });
+        });
+      });
+
+      editorEl.addEventListener("trix-change",     function () { htmlOut.textContent = contentEl.value; });
+      editorEl.addEventListener("trix-initialize", function () { htmlOut.textContent = contentEl.value; });
+
+      document.getElementById("reload-btn").addEventListener("click", function () { editorEl.editor.loadHTML(contentEl.value); });
+      document.getElementById("reset-btn") .addEventListener("click", function () { editorEl.editor.loadHTML(initialHTML); });
+      document.getElementById("empty-btn") .addEventListener("click", function () { editorEl.editor.loadHTML(""); });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trix colour-token attribute — demo</title>
+  <link rel="stylesheet" href="dist/trix.css">
+  <script src="dist/trix.js"></script>
+  <style>
+    :root {
+      --fg: #111;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --bg-soft: #f9fafb;
+      --accent: #2563eb;
+
+      /* The theme tokens. In a real CMS these would come from the theme
+         definition and change per-site/per-page. */
+      --color-primary:   #2563eb;
+      --color-secondary: #9333ea;
+      --color-accent:    #f59e0b;
+    }
+
+    /* Theme mapping: the HTML carries semantic tokens; the theme
+       resolves them to actual colours. Change these 3 lines and every
+       document on the site re-themes. */
+    [data-color="primary"]   { color: var(--color-primary); }
+    [data-color="secondary"] { color: var(--color-secondary); }
+    [data-color="accent"]    { color: var(--color-accent); }
+
+    * { box-sizing: border-box; }
+    body {
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      color: var(--fg);
+      margin: 0;
+      background: white;
+    }
+    main { max-width: 880px; margin: 32px auto; padding: 0 16px 64px; }
+    h1 { margin: 0 0 8px; font-size: 22px; }
+    h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 24px 0 8px; }
+    p.lede { color: var(--muted); margin: 0 0 24px; }
+    code { background: var(--bg-soft); padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+
+    .picker {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      padding: 12px; border: 1px solid var(--border); border-radius: 8px;
+      margin-bottom: 12px; background: var(--bg-soft);
+    }
+    .picker > span.label { font-size: 12px; color: var(--muted); margin-right: 4px; }
+
+    button.token {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 20px;
+      font: 13px/1 inherit; cursor: pointer;
+      border: 1px solid var(--border); background: white; color: var(--fg);
+    }
+    button.token:hover { border-color: var(--accent); }
+    button.token.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
+    button.token .dot { width: 12px; height: 12px; border-radius: 50%; }
+    button.token[data-token="primary"]   .dot { background: var(--color-primary); }
+    button.token[data-token="secondary"] .dot { background: var(--color-secondary); }
+    button.token[data-token="accent"]    .dot { background: var(--color-accent); }
+
+    button.ghost {
+      font-size: 12px; padding: 6px 10px;
+      background: white; border: 1px solid var(--border); border-radius: 6px;
+      cursor: pointer; color: var(--fg);
+    }
+    button.ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .status { margin-left: auto; font-size: 12px; color: var(--muted); }
+    .status b { color: var(--fg); font-weight: 600; }
+
+    trix-editor {
+      min-height: 160px; padding: 12px;
+      border: 1px solid var(--border); border-radius: 8px;
+    }
+    trix-editor:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+    .inspectors { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .inspectors pre {
+      margin: 0; padding: 10px 12px;
+      background: var(--bg-soft); border: 1px solid var(--border); border-radius: 6px;
+      font: 12px/1.4 ui-monospace, Menlo, monospace;
+      max-height: 240px; overflow: auto;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+  <!--
+    Runtime integration. Three concerns, in order:
+      1. Monkey-patch the HTMLSanitizer to allow `data-color` on load.
+      2. Monkey-patch PieceView.createElement so a new `attributeName`
+         config key causes the value to become an HTML attribute, not an
+         inline style.
+      3. Register `color` in Trix.config.textAttributes using that key.
+    All three MUST run before the <trix-editor> tag below is parsed.
+  -->
+  <script>
+    (function () {
+      // 1. Allow data-color to survive HTMLSanitizer. The sanitiser only
+      //    keeps attributes in its allow-list (default: style href src
+      //    width height class target) plus anything starting with
+      //    data-trix-. data-color is in neither bucket, so we intercept.
+      var origSanitize = Trix.HTMLSanitizer.sanitize;
+      Trix.HTMLSanitizer.sanitize = function (html, options) {
+        options = options || {};
+        var baseline = ["style", "href", "src", "width", "height", "class", "target"];
+        var extra = ["data-color"];
+        if (!options.allowedAttributes) {
+          options.allowedAttributes = baseline.concat(extra);
+        } else {
+          extra.forEach(function (a) {
+            if (options.allowedAttributes.indexOf(a) < 0) options.allowedAttributes.push(a);
+          });
+        }
+        return origSanitize.call(this, html, options);
+      };
+
+      // 2. Extend PieceView.createElement to honour a new `attributeName`
+      //    config key. The original function handles tagName, style, and
+      //    styleProperty. We run it first, then append our attribute.
+      var origCreate = Trix.PieceView.prototype.createElement;
+      Trix.PieceView.prototype.createElement = function () {
+        var element = origCreate.call(this);
+        var attrs = this.attributes; // piece attributes, already extracted by constructor
+        for (var key in attrs) {
+          var config = Trix.config.textAttributes[key];
+          if (config && config.attributeName) {
+            if (!element) element = Trix.makeElement("span");
+            element.setAttribute(config.attributeName, attrs[key]);
+          }
+        }
+        return element;
+      };
+
+      // 3. Register the attribute.
+      Trix.config.textAttributes.color = {
+        attributeName: "data-color", // consumed by the patched createElement
+        inheritable: true,
+        parser: function (element) {
+          var found = Trix.findClosestElementFromNode(element, { matchingSelector: "[data-color]" });
+          return found ? found.getAttribute("data-color") : undefined;
+        },
+      };
+    })();
+  </script>
+
+  <main>
+    <h1>Trix colour-token attribute — demo</h1>
+    <p class="lede">
+      Runtime-registered <code>color</code> text attribute that emits
+      <code>data-color="primary|secondary|accent"</code> into the HTML.
+      The theme (see the <code>:root</code> CSS at the top of this file)
+      maps each token to an actual colour — change those three lines and
+      every document re-themes.
+    </p>
+
+    <div class="picker" id="picker">
+      <span class="label">Colour token:</span>
+      <button class="token" data-token="primary"   tabindex="-1"><span class="dot"></span>primary</button>
+      <button class="token" data-token="secondary" tabindex="-1"><span class="dot"></span>secondary</button>
+      <button class="token" data-token="accent"    tabindex="-1"><span class="dot"></span>accent</button>
+      <button class="ghost" id="clear-color"       tabindex="-1">Clear</button>
+      <span class="status" id="status">no selection</span>
+    </div>
+
+    <form>
+      <input
+        type="hidden"
+        id="content"
+        name="content"
+        value='&lt;div&gt;Welcome to the &lt;span data-color=&quot;primary&quot;&gt;colour&lt;/span&gt; demo.&lt;/div&gt;&lt;div&gt;Try: &lt;strong data-color=&quot;secondary&quot;&gt;bold secondary&lt;/strong&gt;, &lt;em&gt;plain italic&lt;/em&gt;, and &lt;span data-color=&quot;accent&quot;&gt;accent&lt;/span&gt; words.&lt;/div&gt;&lt;div&gt;Select anything and pick a token above.&lt;/div&gt;'>
+      <trix-editor input="content" autofocus></trix-editor>
+    </form>
+
+    <div class="inspectors">
+      <div>
+        <h2>Active attributes at cursor</h2>
+        <pre id="attrs-out">(nothing yet)</pre>
+      </div>
+      <div>
+        <h2>Serialized HTML (hidden input value)</h2>
+        <pre id="html-out">(nothing yet)</pre>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="ghost" id="reload-btn">Reload from serialized HTML</button>
+      <button class="ghost" id="reset-btn">Reset to sample content</button>
+      <button class="ghost" id="empty-btn">Empty editor</button>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var editorEl   = document.querySelector("trix-editor");
+      var picker     = document.getElementById("picker");
+      var clearBtn   = document.getElementById("clear-color");
+      var status     = document.getElementById("status");
+      var attrsOut   = document.getElementById("attrs-out");
+      var htmlOut    = document.getElementById("html-out");
+      var contentEl  = document.getElementById("content");
+      var reloadBtn  = document.getElementById("reload-btn");
+      var resetBtn   = document.getElementById("reset-btn");
+      var emptyBtn   = document.getElementById("empty-btn");
+
+      var initialHTML = contentEl.value;
+      var tokens = picker.querySelectorAll("button.token");
+
+      function applyToken(token) {
+        if (!editorEl.editor) return;
+        editorEl.editor.recordUndoEntry("Colour: " + token, { consolidatable: true });
+        editorEl.editor.activateAttribute("color", token);
+      }
+      function clearToken() {
+        if (!editorEl.editor) return;
+        editorEl.editor.recordUndoEntry("Clear colour", { consolidatable: true });
+        editorEl.editor.deactivateAttribute("color");
+      }
+
+      // Use mousedown so we act before the editor loses focus to the button.
+      tokens.forEach(function (btn) {
+        btn.addEventListener("mousedown", function (e) {
+          e.preventDefault();
+          applyToken(btn.dataset.token);
+        });
+      });
+      clearBtn.addEventListener("mousedown", function (e) {
+        e.preventDefault();
+        clearToken();
+      });
+
+      editorEl.addEventListener("trix-selection-change", function () {
+        if (!editorEl.editor) return;
+        var range = editorEl.editor.getSelectedRange();
+        if (!range) {
+          status.innerHTML = "<b>no selection</b>";
+        } else if (range[0] === range[1]) {
+          status.innerHTML = "cursor at <b>" + range[0] + "</b> — token will apply to next typed text";
+        } else {
+          status.innerHTML = "selection <b>" + range[0] + "&ndash;" + range[1] + "</b> (" + (range[1] - range[0]) + " chars)";
+        }
+      });
+
+      editorEl.addEventListener("trix-attributes-change", function (e) {
+        attrsOut.textContent = JSON.stringify(e.attributes, null, 2);
+        var active = e.attributes && e.attributes.color;
+        tokens.forEach(function (btn) {
+          btn.classList.toggle("active", btn.dataset.token === active);
+        });
+      });
+
+      editorEl.addEventListener("trix-change",     function () { htmlOut.textContent = contentEl.value; });
+      editorEl.addEventListener("trix-initialize", function () { htmlOut.textContent = contentEl.value; });
+
+      reloadBtn.addEventListener("click", function () { editorEl.editor.loadHTML(contentEl.value); });
+      resetBtn .addEventListener("click", function () { editorEl.editor.loadHTML(initialHTML); });
+      emptyBtn .addEventListener("click", function () { editorEl.editor.loadHTML(""); });
+    })();
+  </script>
+</body>
+</html>
