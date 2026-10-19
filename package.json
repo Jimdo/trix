@@ -26,5 +26,9 @@
   "homepage": "http://trix-editor.org/",
   "devDependencies": {
     "svgo": "^0.6.1"
+  },
+  "volta": {
+    "node": "24.21.0",
+    "npm": "12.1.0"
   }
 }
